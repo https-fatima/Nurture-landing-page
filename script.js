@@ -1,4 +1,4 @@
-// Smooth scrolling for navigation links
+// Smooth scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -66,6 +66,136 @@ window.addEventListener('load', function() {
     setTimeout(() => {
         document.body.style.opacity = '1';
     }, 100);
+});
+
+// Quiz functionality
+class MomMatchingQuiz {
+    constructor() {
+        this.currentQuestion = 1;
+        this.totalQuestions = 5;
+        this.answers = {};
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.updateProgress();
+    }
+
+    bindEvents() {
+        // Option selection
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.selectOption(e.target);
+            });
+        });
+
+        // Navigation
+        document.querySelector('.next-btn').addEventListener('click', () => {
+            this.nextQuestion();
+        });
+
+        document.querySelector('.prev-btn').addEventListener('click', () => {
+            this.previousQuestion();
+        });
+
+        // Join community button
+        document.querySelector('.join-community').addEventListener('click', () => {
+            document.querySelector('#waitlist').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    selectOption(button) {
+        // Remove selected class from all options in current question
+        const currentQuestion = document.querySelector(`.question[data-question="${this.currentQuestion}"]`);
+        currentQuestion.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+
+        // Add selected class to clicked option
+        button.classList.add('selected');
+
+        // Store answer
+        this.answers[this.currentQuestion] = button.dataset.value;
+
+        // Enable next button
+        document.querySelector('.next-btn').disabled = false;
+    }
+
+    nextQuestion() {
+        if (this.currentQuestion < this.totalQuestions) {
+            this.hideQuestion(this.currentQuestion);
+            this.currentQuestion++;
+            this.showQuestion(this.currentQuestion);
+            this.updateProgress();
+            this.updateNavigation();
+        } else {
+            this.showResults();
+        }
+    }
+
+    previousQuestion() {
+        if (this.currentQuestion > 1) {
+            this.hideQuestion(this.currentQuestion);
+            this.currentQuestion--;
+            this.showQuestion(this.currentQuestion);
+            this.updateProgress();
+            this.updateNavigation();
+        }
+    }
+
+    hideQuestion(questionNum) {
+        const question = document.querySelector(`.question[data-question="${questionNum}"]`);
+        question.classList.remove('active');
+    }
+
+    showQuestion(questionNum) {
+        const question = document.querySelector(`.question[data-question="${questionNum}"]`);
+        question.classList.add('active');
+
+        // Restore selected option if exists
+        if (this.answers[questionNum]) {
+            const selectedOption = question.querySelector(`[data-value="${this.answers[questionNum]}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+        }
+    }
+
+    updateProgress() {
+        const progress = (this.currentQuestion / this.totalQuestions) * 100;
+        document.querySelector('.progress-bar').style.width = `${progress}%`;
+    }
+
+    updateNavigation() {
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+
+        prevBtn.disabled = this.currentQuestion === 1;
+
+        if (this.currentQuestion === this.totalQuestions) {
+            nextBtn.textContent = 'See Results';
+        } else {
+            nextBtn.textContent = 'Next';
+        }
+
+        // Disable next if no option selected (except for last question)
+        if (this.currentQuestion < this.totalQuestions) {
+            nextBtn.disabled = !this.answers[this.currentQuestion];
+        }
+    }
+
+    showResults() {
+        document.querySelector('.quiz-content').style.display = 'none';
+        document.querySelector('.quiz-result').style.display = 'block';
+        document.querySelector('.quiz-navigation').style.display = 'none';
+        document.querySelector('.quiz-progress').style.display = 'none';
+    }
+}
+
+// For Quiz
+document.addEventListener('DOMContentLoaded', function() {
+    new MomMatchingQuiz();
 });
 
 // Hamburger menu functionality (for mobile)
